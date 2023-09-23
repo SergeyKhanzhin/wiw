@@ -4,6 +4,10 @@ import os.path
 import pandas as pd
 import logging
 
+import concurrent.futures
+
+import processor as p
+
 # setting up top level logging config
 logging.basicConfig(level=logging.INFO, filename='execution.log', format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger('fileProcessor')
@@ -22,56 +26,49 @@ def config():
             target_file = config['target_file_name']
 
         source_file_path = config['source_files_path']
+        number_of_threads = config.get('number_of_threads', 10)
 
     except FileNotFoundError as e:
-        logger.error(str(e))
-        exit(1)
+        raise RuntimeError(str(e))
     except KeyError as e:
-        logger.error('There is a problem with the config file - ' + str(e) + ' is not found')
-        exit(1)
+        raise RuntimeError('There is a problem with the config file - ' + str(e) + ' is not found')
+
 
     letters = 'abcdefghijklmnopqrstuvwxyz'
     source_files = [source_file_path + item + '.csv' for item in letters]
 
-    return target_file, source_files
+    return target_file, source_files, number_of_threads
 
 
-def download_data(source_files):
+def process_data(source_files, target_file, number_of_threads):
 
     common_df = pd.DataFrame
 
     logger.info("Data downloading started")
 
-    for item in source_files:
-        logger.debug("Downloading data from " + item)
-        try:
-            df = pd.read_csv(item, sep=',')
-            if common_df.empty:
-                common_df = df.copy()
-            else:
-                common_df = pd.concat([common_df, df])
-        except Exception as e:
-            logger.error(str(e))
+    for i in range(number_of_threads):
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = executor.submit(p.process_data, [item for ind, item in enumerate(source_files) if ind % number_of_threads == i])
+            result = pd.DataFrame(futures.result())
 
-    logger.info("Download is OK")
-    return common_df
+        if common_df.empty:
+            common_df = result.copy()
+        else:
+            common_df = pd.concat([common_df, result])
 
-
-def process_data(dataset, target_file):
-    logger.info("Data processing started")
-
-    df_result = pd.DataFrame(dataset.groupby(['user_id', 'path'])['length'].sum()).reset_index()
+    df_result = pd.DataFrame(common_df.groupby(['user_id', 'path'])['length'].sum()).reset_index()
     df_final = df_result.pivot(index='user_id', columns='path', values='length').fillna(0)
-
     df_final.to_csv(target_file)
-
-    logger.info("Data processing is OK. Resulted dataset was downloaded to " + target_file)
 
 
 def main():
-    target_file, source_files = config()
-    dataset = download_data(source_files)
-    process_data(dataset, target_file)
+    try:
+        logger.info("Started")
+        target_file, source_files, number_of_threads = config()
+        process_data(source_files, target_file, number_of_threads)
+        logger.info("DONE")
+    except RuntimeError as e:
+        logger.error(str(e))
 
 
 if __name__ == '__main__':

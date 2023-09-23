@@ -1,5 +1,6 @@
 {
   "source_files_path": "https://public.wiwdata.com/engineering-challenge/data/",
-  "target_file_path" : "/Users/xxxxx/Downloads/",
-  "target_file_name" : "result.csv"
+  "target_file_path" : "/Users/xxxx/Downloads/",
+  "target_file_name" : "result.csv",
+  "number_of_threads": 15
 }
