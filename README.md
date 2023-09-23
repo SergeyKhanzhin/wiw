@@ -7,6 +7,8 @@
 4. run *python3 process_data.py*
 5. execution log will be saved in the *./execution.log* file
 
+### **This version downloads and processes data in several threads**
+
 ### Objective
 Write a python script/program to transform web traffic data stored in time-record format where
 each row is a page view into a per-user format where each row is a different user and the
