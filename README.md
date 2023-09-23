@@ -2,8 +2,10 @@
 
 ## Setup
 1. download *config.json*, *process_data.py* files
-2. make sure you put proper values in the config.json file
-3. run *python3 process_data.py*
+2. in Terminal, go to the folder where you saved these files
+3. edit *config.json* file and specify proper values
+4. run *python3 process_data.py*
+5. execution log will be saved in the *./execution.log* file
 
 ### Objective
 Write a python script/program to transform web traffic data stored in time-record format where
