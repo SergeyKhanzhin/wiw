@@ -24,11 +24,10 @@ def config():
         source_file_path = config['source_files_path']
 
     except FileNotFoundError as e:
-        logger.error(str(e))
-        exit(1)
+        raise RuntimeError(str(e))
     except KeyError as e:
-        logger.error('There is a problem with the config file - ' + str(e) + ' is not found')
-        exit(1)
+        raise RuntimeError('There is a problem with the config file - ' + str(e) + ' is not found')
+
 
     letters = 'abcdefghijklmnopqrstuvwxyz'
     source_files = [source_file_path + item + '.csv' for item in letters]
@@ -58,20 +57,29 @@ def download_data(source_files):
 
 
 def process_data(dataset, target_file):
-    logger.info("Data processing started")
 
-    df_result = pd.DataFrame(dataset.groupby(['user_id', 'path'])['length'].sum()).reset_index()
-    df_final = df_result.pivot(index='user_id', columns='path', values='length').fillna(0)
+    if dataset.empty:
+        raise RuntimeError("No data to process. Check execution.log for details")
+    else:
 
-    df_final.to_csv(target_file)
+        logger.info("Data processing started")
 
-    logger.info("Data processing is OK. Resulted dataset was downloaded to " + target_file)
+        df_result = pd.DataFrame(dataset.groupby(['user_id', 'path'])['length'].sum()).reset_index()
+        df_final = df_result.pivot(index='user_id', columns='path', values='length').fillna(0)
+
+        df_final.to_csv(target_file)
+
+        logger.info("Data processing is OK. Resulted dataset was downloaded to " + target_file)
 
 
 def main():
-    target_file, source_files = config()
-    dataset = download_data(source_files)
-    process_data(dataset, target_file)
+    try:
+        target_file, source_files = config()
+        dataset = download_data(source_files)
+        process_data(dataset, target_file)
+    except Exception as e:
+        print(str(e))
+        logger.error(str(e))
 
 
 if __name__ == '__main__':
