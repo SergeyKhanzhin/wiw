@@ -14,10 +14,13 @@ def config():
     try:
         with open('config.json', 'r') as f:
             config = json.loads(f.read())
+
+        # if target folder does not exist, make current folder as a target one
         if os.path.isdir(config['target_file_path']):
             target_file = config['target_file_path'] + config['target_file_name']
         else:
             target_file = config['target_file_name']
+
         source_file_path = config['source_files_path']
 
     except FileNotFoundError as e:
