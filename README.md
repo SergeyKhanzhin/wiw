@@ -42,7 +42,9 @@ spent on each path.
 
 1. This program is intended to download 26 CSV files with pre-defined names (a.csv ... z.csv) and with identical data schema (set of fields)
 2. This program is a ***lightweight*** version that implements the required functionality.
-   * If performance is a concern, then something like a multithreading can be introduced - it is possible to distribute downloading/calculation of smaller chunks (1..x of files) and apply final calculation on top at the end 
+   * If performance is a concern, then something like a multithreading can be introduced - it is possible to distribute downloading/calculation of smaller chunks (1..x of files) and apply final calculation on top at the end
+   * There is no staging zone, calculation is happening on the fly. Proper ETL would require downloading data and saving it locally before processing (for re-processing purpose and reducing pressure on the source)
+   * Logging is minimal
 3. If target folder does not exist, the resulted file will be saved in the current directory
 4. Resulted data might be not accurate in case some of the source files are missed/broken. In case there are missed/broken files, there will be a message sent to the _execution.log_ file for the further investigations
 5. All non-numeric values (if any) will be ignored and omitted from the final result
